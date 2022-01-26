@@ -47,6 +47,7 @@ func ExecIfDefaultCtxType(ctx context.Context, root *cobra.Command) {
 	s := store.Instance()
 
 	currentCtx, err := s.Get(currentContext)
+
 	// Only run original docker command if the current context is not ours.
 	if err != nil || mustDelegateToMoby(currentCtx.Type()) {
 		Exec(root)

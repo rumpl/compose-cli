@@ -21,6 +21,7 @@ import (
 	"encoding/json"
 	"os/exec"
 
+	"github.com/docker/compose-cli/cli/mobycli/resolvepath"
 	"github.com/pkg/errors"
 )
 
@@ -49,7 +50,10 @@ type endpoint struct {
 
 func dockerDefaultContext() (*DockerContext, error) {
 	// ensure we run this using default context, in current context has been damaged / removed in store
-	cmd := exec.Command("com.docker.cli", "--context", "default", "context", "inspect", "default")
+	execBinary, _ := resolvepath.LookPath("com.docker.cli")
+	cmd := exec.Command(execBinary, "--context", "default", "context", "inspect", "default")
+
+	// cmd := exec.Command("com.docker.cli", "--context", "default", "context", "inspect", "default")
 	var stdout bytes.Buffer
 	cmd.Stdout = &stdout
 	err := cmd.Run()

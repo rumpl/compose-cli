@@ -24,6 +24,7 @@ import (
 	"os/signal"
 	"path/filepath"
 	"regexp"
+	"runtime/trace"
 	"strings"
 	"syscall"
 	"time"
@@ -112,6 +113,10 @@ func isFirstLevelCommand(cmd *cobra.Command) bool {
 }
 
 func main() {
+	file, _ := os.Create("./cpu.pprof")
+	trace.Start(file)
+
+	start := time.Now()
 	var opts cliopts.GlobalOpts
 	root := &cobra.Command{
 		Use:              "docker",
@@ -120,6 +125,8 @@ func main() {
 		TraverseChildren: true,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			if !isContextAgnosticCommand(cmd) {
+				elapsed := time.Since(start)
+				fmt.Printf("took\t\t%s\n", elapsed)
 				mobycli.ExecIfDefaultCtxType(cmd.Context(), cmd.Root())
 			}
 			return nil
@@ -284,6 +291,7 @@ $ docker context create %s <name>`, cc.Type(), store.EcsContextType), ctype)
 	if requiredCmd != nil && isContextAgnosticCommand(requiredCmd) {
 		exit(currentContext, err, ctype)
 	}
+
 	mobycli.ExecIfDefaultCtxType(ctx, root)
 
 	checkIfUnknownCommandExistInDefaultContext(err, currentContext, ctype)
